@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register Voter</title>
+  <style>
+    body { text-align: center; font-family: Arial, Helvetica, sans-serif; }
+    div { width: 25%; margin: auto; display: flex; flex-direction: column; }
+    input, button { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Voter Registration dApp</h1>
+    <label for="name">Name:</label>
+    <input type="text" id="name"/>
+
+    <label for="age">Age:</label>
+    <input type="number" id="age"/>
+
+    <label for="citizenship">Citizenship (e.g. AU):</label>
+    <input type="text" id="citizenship"/>
+
+    <label for="residence">Residence:</label>
+    <input type="text" id="residence"/>
+
+    <button onclick="register()">Register Voter</button>
+    <p id="status" style="margin-top:1em; font-weight:bold;"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+    const registerContractAddress = "0xf8e81D47203A594245E36C48e151709F0C19fBe8"; // Replace with deployed address
+    const registerContractABI = [
+      {
+        "inputs": [
+          { "internalType": "string", "name": "_name", "type": "string" },
+          { "internalType": "uint8", "name": "_age", "type": "uint8" },
+          { "internalType": "string", "name": "_citizenship", "type": "string" },
+          { "internalType": "string", "name": "_residence", "type": "string" }
+        ],
+        "name": "registerVoter",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": true, "internalType": "address", "name": "voter", "type": "address" },
+          { "indexed": false, "internalType": "uint256", "name": "voterId", "type": "uint256" }
+        ],
+        "name": "VoterRegistered",
+        "type": "event"
+      }
+    ];
+
+    let registerContract;
+    let signer;
+
+    provider.send("eth_requestAccounts", []).then(() => {
+      provider.listAccounts().then(accounts => {
+        signer = provider.getSigner(accounts[0]);
+        registerContract = new ethers.Contract(registerContractAddress, registerContractABI, signer);
+      });
+    });
+
+    async function register() {
+      const name = document.getElementById("name").value;
+      const age = parseInt(document.getElementById("age").value);
+      const citizenship = document.getElementById("citizenship").value;
+      const residence = document.getElementById("residence").value;
+
+      try {
+        const tx = await registerContract.registerVoter(name, age, citizenship, residence);
+        await tx.wait();
+        document.getElementById("status").innerText = "Registration successful!";
+      } catch (err) {
+        console.error("Registration failed:", err);
+        document.getElementById("status").innerText = "Error: " + (err.reason || "See console.");
+      }
+    }
+  </script>
+</body>
+</html>

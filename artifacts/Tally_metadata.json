@@ -1,0 +1,198 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "string[]",
+						"name": "_candidates",
+						"type": "string[]"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [],
+				"name": "ResultsPublished",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "candidate",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "count",
+						"type": "uint256"
+					}
+				],
+				"name": "VotesTallied",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "candidate",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "count",
+						"type": "uint256"
+					}
+				],
+				"name": "addVotes",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "candidates",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "publishResults",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "resultsPublished",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"name": "voteCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"addVotes(string,uint256)": {
+					"params": {
+						"candidate": "The name of the candidate to receive additional votes",
+						"count": "Number of votes to add"
+					}
+				},
+				"constructor": {
+					"params": {
+						"_candidates": "Array of candidate names participating in the election"
+					}
+				},
+				"publishResults()": {
+					"details": "Once published, votes can no longer be added"
+				}
+			},
+			"title": "Tally - A simple vote counting and publishing contract",
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"addVotes(string,uint256)": {
+					"notice": "Add votes to a candidate's total (can be called multiple times before publishing)"
+				},
+				"constructor": {
+					"notice": "Constructor to initialize the contract with the candidate list"
+				},
+				"publishResults()": {
+					"notice": "Finalizes and publishes the election results"
+				}
+			},
+			"notice": "This contract is used to tally votes after an election and publish the final results",
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"Tally.sol": "Tally"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Tally.sol": {
+			"keccak256": "0x90e4575f5479fbd79db59f8aebc548a8c81fcd6207543655bcc25e0f9cce7a22",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://aec6dbe73acb06d60f0930c6d85971b22420c527aae0e63b3f57e74f630408e6",
+				"dweb:/ipfs/QmWLFGS3TrNSi8iznMBErywQvpwaX6ZXXPprNn1JsTxLEq"
+			]
+		}
+	},
+	"version": 1
+}
