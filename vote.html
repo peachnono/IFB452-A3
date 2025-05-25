@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="vote.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
     <title>Vote</title>
   </head>
   <body>
@@ -17,10 +21,8 @@
     <script>
       const provider = new ethers.providers.Web3Provider(window.ethereum);
 
-      const votingContractAddress =
-        "0xA586074FA4Fe3E546A132a16238abe37951D41fE";
-      const registryContractAddress =
-        "0xFF6049B87215476aBf744eaA3a476cBAd46fB1cA";
+      const votingContractAddress = "0xDDb64fE46a91D46ee29420539FC25FD07c5FEa3E";
+      const registryContractAddress = "0xEC5d4F247aF81A843612eb1371CBCfa88b762119";
 
       const votingABI = [
         {
@@ -31,9 +33,7 @@
           type: "function"
         },
         {
-          inputs: [
-            { internalType: "string", name: "candidate", type: "string" }
-          ],
+          inputs: [{ internalType: "string", name: "candidate", type: "string" }],
           name: "vote",
           outputs: [],
           stateMutability: "nonpayable",
@@ -83,39 +83,42 @@
           signer = provider.getSigner();
           userAddress = await signer.getAddress();
 
-          votingContract = new ethers.Contract(
-            votingContractAddress,
-            votingABI,
-            signer
-          );
-          registryContract = new ethers.Contract(
-            registryContractAddress,
-            registryABI,
-            provider
-          );
+          votingContract = new ethers.Contract(votingContractAddress, votingABI, signer);
+          registryContract = new ethers.Contract(registryContractAddress, registryABI, provider);
 
           console.log("🔐 Connected as:", userAddress);
 
           const registered = await registryContract.isRegistered(userAddress);
           if (!registered) {
-            document.getElementById("status").innerText =
-              "❌ You are not a registered voter.";
+            document.getElementById("status").innerHTML =
+              '<i class="fas fa-ban"></i> You are not a registered voter.';
             return;
           }
 
           const alreadyVoted = await registryContract.hasVoted(userAddress);
           if (alreadyVoted) {
-            document.getElementById("status").innerText =
-              "✅ You have already voted.";
+            document.getElementById("status").innerHTML =
+              '<i class="fas fa-check-circle"></i> You have already voted.';
             return;
+
+            const resultsBtn = document.createElement("button");
+  resultsBtn.innerHTML = '<i class="fas fa-chart-bar"></i> Check Results';
+  resultsBtn.className = "blue-button";
+  resultsBtn.style.marginTop = "1em";
+  resultsBtn.onclick = () => (window.location.href = "results.html");
+
+  const container = document.querySelector(".container");
+  container.appendChild(resultsBtn);
+
+  return;
           }
 
           const started = await votingContract.electionStarted();
           const ended = await votingContract.resultsPublished();
 
           if (!started) {
-            document.getElementById("status").innerText =
-              "🕒 Voting has not started.";
+            document.getElementById("status").innerHTML =
+              '<i class="fas fa-clock"></i> Voting has not started.';
             return;
           }
 
@@ -136,25 +139,25 @@
             list.appendChild(btn);
           });
         } catch (error) {
-          console.error("❗ Error during initialization:", error);
-          document.getElementById("status").innerText =
-            "⚠️ Error: " + (error.reason || error.message || "See console");
+          console.error("Error during initialization:", error);
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-exclamation-circle"></i> Error: ' +
+            (error.reason || error.message || "See console");
         }
       }
 
       async function vote(candidate) {
         try {
           const tx = await votingContract.vote(candidate);
-          document.getElementById("status").innerText =
-            "⏳ Waiting for confirmation...";
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Waiting for confirmation...';
           await tx.wait();
-          document.getElementById(
-            "status"
-          ).innerText = `✅ Successfully voted for ${candidate}`;
+          document.getElementById("status").innerHTML =
+            `<i class="fas fa-check-circle" style="color: green;"></i> Successfully voted for ${candidate}`;
           document.getElementById("candidateList").innerHTML = "";
 
           const resultsBtn = document.createElement("button");
-          resultsBtn.innerText = "📊 Check Results";
+          resultsBtn.innerHTML = '<i class="fas fa-chart-bar"></i> Check Results';
           resultsBtn.className = "blue-button";
           resultsBtn.style.marginTop = "1em";
           resultsBtn.onclick = () => (window.location.href = "results.html");
@@ -162,9 +165,10 @@
           const container = document.querySelector(".container");
           container.appendChild(resultsBtn);
         } catch (err) {
-          console.error("❗ Vote error:", err);
-          document.getElementById("status").innerText =
-            "⚠️ Vote failed: " + (err.reason || err.message || "See console");
+          console.error("Vote error:", err);
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-exclamation-triangle"></i> Vote failed: ' +
+            (err.reason || err.message || "See console");
         }
       }
 

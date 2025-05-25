@@ -70,3 +70,24 @@ body {
     background-color: #0056b3;
   }
   
+  #status .fa-ban {
+    color: red;
+  }
+  
+  #status .fa-check-circle {
+    color: green;
+  }
+  
+  #status .fa-clock {
+    color: orange;
+  }
+  
+  #status .fa-spinner {
+    color: #007bff;
+  }
+  
+  #status .fa-exclamation-circle,
+  #status .fa-exclamation-triangle {
+    color: #d9534f;
+  }
+  

@@ -3,20 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="admin.css" />
   <title>Election Results</title>
+  <link rel="stylesheet" href="admin.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
 </head>
 <body>
   <div class="candidate-section">
-  <h1>📊 Final Election Results</h1>
-  <p id="status">Connecting to blockchain...</p>
-  <ul id="candidateList">Loading...</ul>
-</div>
+    <h1><i class="fas fa-chart-bar"></i> Final Election Results</h1>
+    <p id="status">Connecting to blockchain...</p>
+    <ul id="candidateList">Loading...</ul>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const tallyContractAddress = "0x86072CbFF48dA3C1F01824a6761A03F105BCC697";
+    const tallyContractAddress = "0xaf5C4C6C7920B4883bC6252e9d9B8fE27187Cf68";
   
     const tallyABI = [
       {
@@ -47,11 +51,14 @@
   
         const published = await tallyContract.resultsPublished();
         if (!published) {
-          document.getElementById("status").innerText = "⚠️ Results not published yet.";
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-exclamation-triangle" style="color: orange;"></i> Results not published yet.';
           return;
         }
   
-        document.getElementById("status").innerText = "✅ Results published!";
+        document.getElementById("status").innerHTML =
+          '<i class="fas fa-check-circle" style="color: green;"></i> Results published!';
+  
         const candidateList = document.getElementById("candidateList");
         candidateList.innerHTML = "";
   
@@ -64,8 +71,9 @@
         }
       } catch (err) {
         console.error(err);
-        document.getElementById("status").innerText =
-          "❌ Error fetching results: " + (err.reason || err.message);
+        document.getElementById("status").innerHTML =
+          '<i class="fas fa-times-circle" style="color: red;"></i> Error fetching results: ' +
+          (err.reason || err.message);
       }
     }
   

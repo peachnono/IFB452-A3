@@ -3,14 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="styles.css" />
     <title>Register Voter</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
     <style>
       body {
         text-align: center;
         font-family: Arial, Helvetica, sans-serif;
       }
-      div {
+      .container {
         width: 25%;
         margin: auto;
         display: flex;
@@ -45,7 +49,7 @@
     <script>
       const provider = new ethers.providers.Web3Provider(window.ethereum);
 
-      const registerContractAddress = "0xFF6049B87215476aBf744eaA3a476cBAd46fB1cA"; 
+      const registerContractAddress = "0xEC5d4F247aF81A843612eb1371CBCfa88b762119";
 
       const registerContractABI = [
         {
@@ -77,18 +81,8 @@
         {
           anonymous: false,
           inputs: [
-            {
-              indexed: true,
-              internalType: "address",
-              name: "voter",
-              type: "address"
-            },
-            {
-              indexed: false,
-              internalType: "uint256",
-              name: "voterId",
-              type: "uint256"
-            }
+            { indexed: true, internalType: "address", name: "voter", type: "address" },
+            { indexed: false, internalType: "uint256", name: "voterId", type: "uint256" }
           ],
           name: "VoterRegistered",
           type: "event"
@@ -108,7 +102,7 @@
         );
 
         registerContract.on("VoterRegistered", (voter, voterId) => {
-          console.log("🟢 Event: VoterRegistered", voter, "ID:", voterId.toString());
+          console.log("Event: VoterRegistered", voter, "ID:", voterId.toString());
         });
       }
 
@@ -121,7 +115,8 @@
         const residence = document.getElementById("residence").value.trim();
 
         if (!name || isNaN(age) || !citizenship || !residence) {
-          document.getElementById("status").innerText = "❌ Please fill in all fields.";
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-times-circle" style="color: red;"></i> Please fill in all fields.';
           return;
         }
 
@@ -130,7 +125,7 @@
           const alreadyRegistered = await registerContract.isRegistered(userAddress);
 
           if (alreadyRegistered) {
-            alert("⚠️ Already registered. Redirecting to vote page...");
+            alert("Already registered. Redirecting to vote page...");
             window.location.href = "vote.html";
             return;
           }
@@ -138,21 +133,23 @@
           const tx = await registerContract.registerVoter(name, age, citizenship, residence);
           console.log("Transaction sent:", tx.hash);
 
-          document.getElementById("status").innerText = "⏳ Waiting for confirmation...";
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Waiting for confirmation...';
           await tx.wait();
 
           const count = await registerContract.voterCount();
-          console.log("📊 Voter count:", count.toString());
+          console.log("Voter count:", count.toString());
 
-          document.getElementById("status").innerText =
-            "✅ Registration successful! Redirecting...";
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-check-circle" style="color: green;"></i> Registration successful! Redirecting...';
           setTimeout(() => {
             window.location.href = "vote.html";
           }, 2000);
         } catch (err) {
-          console.error("❌ Registration failed:", err);
-          document.getElementById("status").innerText =
-            "❌ Error: " + (err.reason || err.message || "Check console.");
+          console.error("Registration failed:", err);
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-exclamation-triangle" style="color: red;"></i> Error: ' +
+            (err.reason || err.message || "Check console.");
         }
       }
     </script>
