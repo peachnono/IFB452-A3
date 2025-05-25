@@ -1,83 +1,89 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/// @title Voting - A secure election contract integrated with voter registration
+interface IVoterRegistry {
+    function isRegistered(address user) external view returns (bool);
+    function hasVoted(address user) external view returns (bool);
+    function setHasVoted(address user) external;
+}
+
+interface ITally {
+    function addVotes(string memory candidate, uint256 count) external;
+    function publishResults() external;
+}
+
 contract Voting {
     address public owner;
+    bool public electionStarted;
     bool public resultsPublished;
 
-    // Candidate name => vote count
-    mapping(string => uint256) public voteCount;
+    IVoterRegistry public registry;
+    ITally public tally;
+
     string[] public candidates;
 
-    // Voter address => has voted
-    mapping(address => bool) public hasVoted;
-
-    mapping(address => bool) public isRegistered;
-
-    // Events
-    event VoteCasted(address indexed voter, string candidate);
-    event VotesTallied(string candidate, uint256 count);
+    event ElectionStarted();
+    event VoteCasted(address voter, string candidate);
     event ResultsPublished();
-    event VoterManuallyRegistered(address voter);
 
-    // Modifiers
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can perform this action");
         _;
     }
 
-    modifier notPublished() {
-        require(!resultsPublished, "Results have already been published");
+    modifier electionActive() {
+        require(electionStarted, "Election not started");
+        require(!resultsPublished, "Voting ended");
         _;
     }
 
-    modifier onlyRegistered() {
-        require(isRegistered[msg.sender], "Not a registered voter");
-        _;
-    }
-
-    constructor(string[] memory _candidates) {
+    constructor(
+        string[] memory _candidates,
+        address _registryAddress,
+        address _tallyAddress
+    ) {
         owner = msg.sender;
         candidates = _candidates;
-        resultsPublished = false;
+        registry = IVoterRegistry(_registryAddress);
+        tally = ITally(_tallyAddress);
     }
 
-    function registerVoter(address voter) public onlyOwner {
-        require(!isRegistered[voter], "Voter already registered");
-        isRegistered[voter] = true;
-        emit VoterManuallyRegistered(voter);
+    function startElection() public onlyOwner {
+        require(!electionStarted, "Already started");
+        electionStarted = true;
+        emit ElectionStarted();
     }
 
-    function vote(string memory candidate) public onlyRegistered notPublished {
-        require(!hasVoted[msg.sender], "Already voted");
+    function vote(string memory candidate) public electionActive {
+        require(registry.isRegistered(msg.sender), "Not registered");
+        require(!registry.hasVoted(msg.sender), "Already voted");
 
-        bool validCandidate = false;
+        bool valid = false;
         for (uint i = 0; i < candidates.length; i++) {
             if (keccak256(bytes(candidates[i])) == keccak256(bytes(candidate))) {
-                validCandidate = true;
+                valid = true;
                 break;
             }
         }
-        require(validCandidate, "Candidate not found");
+        require(valid, "Candidate not found");
 
-        voteCount[candidate]++;
-        hasVoted[msg.sender] = true;
-
+        registry.setHasVoted(msg.sender);
+        tally.addVotes(candidate, 1);
         emit VoteCasted(msg.sender, candidate);
     }
 
-    function publishResults() public onlyOwner notPublished {
-        resultsPublished = true;
+    function publishResults() public onlyOwner {
+        require(!tallyResultsPublished(), "Already published");
+        tally.publishResults();
         emit ResultsPublished();
-
-        for (uint i = 0; i < candidates.length; i++) {
-            emit VotesTallied(candidates[i], voteCount[candidates[i]]);
-        }
     }
 
-    function getCandidateVotes(string memory candidate) public view returns (uint256) {
-        return voteCount[candidate];
+    function tallyResultsPublished() public view returns (bool) {
+        (bool success, bytes memory data) = address(tally).staticcall(
+            abi.encodeWithSignature("resultsPublished()")
+        );
+        require(success, "Failed to fetch results");
+        return abi.decode(data, (bool));
     }
 
     function getAllCandidates() public view returns (string[] memory) {

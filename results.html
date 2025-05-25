@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="admin.css" />
+  <title>Election Results</title>
+</head>
+<body>
+  <div class="candidate-section">
+  <h1>📊 Final Election Results</h1>
+  <p id="status">Connecting to blockchain...</p>
+  <ul id="candidateList">Loading...</ul>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const tallyContractAddress = "0x86072CbFF48dA3C1F01824a6761A03F105BCC697";
+  
+    const tallyABI = [
+      {
+        inputs: [],
+        name: "resultsPublished",
+        outputs: [{ internalType: "bool", name: "", type: "bool" }],
+        stateMutability: "view",
+        type: "function"
+      },
+      {
+        inputs: [],
+        name: "getAllResults",
+        outputs: [
+          { internalType: "string[]", name: "", type: "string[]" },
+          { internalType: "uint256[]", name: "", type: "uint256[]" }
+        ],
+        stateMutability: "view",
+        type: "function"
+      }
+    ];
+  
+    let tallyContract;
+  
+    async function init() {
+      try {
+        await provider.send("eth_requestAccounts", []);
+        tallyContract = new ethers.Contract(tallyContractAddress, tallyABI, provider);
+  
+        const published = await tallyContract.resultsPublished();
+        if (!published) {
+          document.getElementById("status").innerText = "⚠️ Results not published yet.";
+          return;
+        }
+  
+        document.getElementById("status").innerText = "✅ Results published!";
+        const candidateList = document.getElementById("candidateList");
+        candidateList.innerHTML = "";
+  
+        const [candidates, votes] = await tallyContract.getAllResults();
+  
+        for (let i = 0; i < candidates.length; i++) {
+          const li = document.createElement("li");
+          li.textContent = `${candidates[i]}: ${votes[i].toString()} votes`;
+          candidateList.appendChild(li);
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText =
+          "❌ Error fetching results: " + (err.reason || err.message);
+      }
+    }
+  
+    init();
+  </script>
+</body>
+</html>

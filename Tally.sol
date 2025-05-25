@@ -8,6 +8,11 @@ contract Tally {
     
     // Address of the contract creator (typically the election authority)
     address public owner;
+    address public votingContract;
+
+    function setVotingContract(address _votingContract) external onlyOwner {
+        votingContract = _votingContract;
+    }
 
     // Flag to check if the final results have already been published
     bool public resultsPublished;
@@ -30,6 +35,11 @@ contract Tally {
         _;
     }
 
+    modifier onlyVotingContract() {
+        require(msg.sender == votingContract, "Only the voting contract can call this function.");
+        _;
+    }
+
     /// @dev Prevents functions from being called again after results are published
     modifier notPublished() {
         require(!resultsPublished, "Results have already been published.");
@@ -47,13 +57,25 @@ contract Tally {
     /// @notice Add votes to a candidate's total (can be called multiple times before publishing)
     /// @param candidate The name of the candidate to receive additional votes
     /// @param count Number of votes to add
-    function addVotes(string memory candidate, uint256 count) public onlyOwner notPublished {
-        voteCount[candidate] += count;
+    function addVotes(string memory candidate, uint256 count) external onlyVotingContract {
+    voteCount[candidate] += count;
+    emit VotesTallied(candidate, voteCount[candidate]);
     }
 
     /// @notice Finalizes and publishes the election results
     /// @dev Once published, votes can no longer be added
-    function publishResults() public onlyOwner notPublished {
+    function publishResults() public onlyVotingContract notPublished {
+        require(msg.sender == votingContract, "Not voting contract");
         resultsPublished = true;
         emit ResultsPublished();
-    }}
+    }
+
+    function getAllResults() public view returns (string[] memory, uint256[] memory) {
+    uint256[] memory counts = new uint256[](candidates.length);
+    for (uint i = 0; i < candidates.length; i++) {
+        counts[i] = voteCount[candidates[i]];
+    }
+    return (candidates, counts);
+    }
+
+}

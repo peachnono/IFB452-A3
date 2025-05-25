@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.26+commit.8a97fa7a"
+		"version": "0.8.18+commit.87f61d96"
 	},
 	"language": "Solidity",
 	"output": {
@@ -9,6 +9,19 @@
 				"inputs": [],
 				"stateMutability": "nonpayable",
 				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "voter",
+						"type": "address"
+					}
+				],
+				"name": "VoteStatusUpdated",
+				"type": "event"
 			},
 			{
 				"anonymous": false,
@@ -58,6 +71,44 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "_voter",
+						"type": "address"
+					}
+				],
+				"name": "hasVoted",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_voter",
+						"type": "address"
+					}
+				],
+				"name": "isRegistered",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "string",
 						"name": "_name",
 						"type": "string"
@@ -79,6 +130,19 @@
 					}
 				],
 				"name": "registerVoter",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_voter",
+						"type": "address"
+					}
+				],
+				"name": "setHasVoted",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -166,6 +230,11 @@
 						"type": "bool"
 					},
 					{
+						"internalType": "bool",
+						"name": "hasVoted",
+						"type": "bool"
+					},
+					{
 						"internalType": "uint256",
 						"name": "voterId",
 						"type": "uint256"
@@ -190,7 +259,7 @@
 		"compilationTarget": {
 			"Register.sol": "Register"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "paris",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -203,11 +272,11 @@
 	},
 	"sources": {
 		"Register.sol": {
-			"keccak256": "0xf4c8c477857d724f52f9d3d55cc10bdc5393ef2f6269ae3a59cf9438e0e9b849",
-			"license": "GPL-3.0",
+			"keccak256": "0x851c435f2582b2ff37eac126abfc3db436ed617c76dcf3f6561b427d88eca7e5",
+			"license": "MIT",
 			"urls": [
-				"bzz-raw://35096bdf4fe905cbbff95da04f9286a4759605368b51d943ff7b5d23203066cd",
-				"dweb:/ipfs/QmZMz46K3XAgu89d1epSJPU6qFGJfFBJnLoAyGj3e3C7BY"
+				"bzz-raw://251c80f336a284f4dff4af46031602841bff09cf159902d16f71660745bf0734",
+				"dweb:/ipfs/QmeiCk6L463U94NgnyCWFz65E8Ax5Jgn5yUTtMCkamK4Vw"
 			]
 		}
 	},

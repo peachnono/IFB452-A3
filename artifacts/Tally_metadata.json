@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.26+commit.8a97fa7a"
+		"version": "0.8.18+commit.87f61d96"
 	},
 	"language": "Solidity",
 	"output": {
@@ -80,6 +80,24 @@
 			},
 			{
 				"inputs": [],
+				"name": "getAllResults",
+				"outputs": [
+					{
+						"internalType": "string[]",
+						"name": "",
+						"type": "string[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "",
+						"type": "uint256[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "owner",
 				"outputs": [
 					{
@@ -114,6 +132,19 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "_votingContract",
+						"type": "address"
+					}
+				],
+				"name": "setVotingContract",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "string",
 						"name": "",
 						"type": "string"
@@ -125,6 +156,19 @@
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "votingContract",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
 					}
 				],
 				"stateMutability": "view",
@@ -173,7 +217,7 @@
 		"compilationTarget": {
 			"Tally.sol": "Tally"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "paris",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -186,11 +230,11 @@
 	},
 	"sources": {
 		"Tally.sol": {
-			"keccak256": "0x90e4575f5479fbd79db59f8aebc548a8c81fcd6207543655bcc25e0f9cce7a22",
+			"keccak256": "0x0883bfbd26358e5133a7c30408527122949f9a2054e2bbaff22912ead4e80caa",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://aec6dbe73acb06d60f0930c6d85971b22420c527aae0e63b3f57e74f630408e6",
-				"dweb:/ipfs/QmWLFGS3TrNSi8iznMBErywQvpwaX6ZXXPprNn1JsTxLEq"
+				"bzz-raw://403fa4446bdb1c085133250d7bbdb558b891c9c742da6462b374d555ef942c36",
+				"dweb:/ipfs/QmdBWAVhHwWM3zCuYR1WU4DXCZNPBsFyweAAydYLtc7bAN"
 			]
 		}
 	},

@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.26+commit.8a97fa7a"
+		"version": "0.8.18+commit.87f61d96"
 	},
 	"language": "Solidity",
 	"output": {
@@ -11,10 +11,26 @@
 						"internalType": "string[]",
 						"name": "_candidates",
 						"type": "string[]"
+					},
+					{
+						"internalType": "address",
+						"name": "_registryAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_tallyAddress",
+						"type": "address"
 					}
 				],
 				"stateMutability": "nonpayable",
 				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [],
+				"name": "ElectionStarted",
+				"type": "event"
 			},
 			{
 				"anonymous": false,
@@ -26,7 +42,7 @@
 				"anonymous": false,
 				"inputs": [
 					{
-						"indexed": true,
+						"indexed": false,
 						"internalType": "address",
 						"name": "voter",
 						"type": "address"
@@ -39,38 +55,6 @@
 					}
 				],
 				"name": "VoteCasted",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": false,
-						"internalType": "address",
-						"name": "voter",
-						"type": "address"
-					}
-				],
-				"name": "VoterManuallyRegistered",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": false,
-						"internalType": "string",
-						"name": "candidate",
-						"type": "string"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "count",
-						"type": "uint256"
-					}
-				],
-				"name": "VotesTallied",
 				"type": "event"
 			},
 			{
@@ -94,69 +78,25 @@
 			},
 			{
 				"inputs": [],
+				"name": "electionStarted",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "getAllCandidates",
 				"outputs": [
 					{
 						"internalType": "string[]",
 						"name": "",
 						"type": "string[]"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "string",
-						"name": "candidate",
-						"type": "string"
-					}
-				],
-				"name": "getCandidateVotes",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "hasVoted",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "",
-						"type": "bool"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "isRegistered",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "",
-						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -183,21 +123,54 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
+				"inputs": [],
+				"name": "registry",
+				"outputs": [
 					{
-						"internalType": "address",
-						"name": "voter",
+						"internalType": "contract IVoterRegistry",
+						"name": "",
 						"type": "address"
 					}
 				],
-				"name": "registerVoter",
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "resultsPublished",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "startElection",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
 				"inputs": [],
-				"name": "resultsPublished",
+				"name": "tally",
+				"outputs": [
+					{
+						"internalType": "contract ITally",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "tallyResultsPublished",
 				"outputs": [
 					{
 						"internalType": "bool",
@@ -220,46 +193,16 @@
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "string",
-						"name": "",
-						"type": "string"
-					}
-				],
-				"name": "voteCount",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
 			}
 		],
 		"devdoc": {
 			"kind": "dev",
 			"methods": {},
-			"title": "Voting - A secure election contract integrated with voter registration",
 			"version": 1
 		},
 		"userdoc": {
 			"kind": "user",
-			"methods": {
-				"publishResults()": {
-					"notice": "Publishes the results"
-				},
-				"registerVoter(address)": {
-					"notice": "Manually register a voter (simulates integration with Register contract)"
-				},
-				"vote(string)": {
-					"notice": "Allows a registered voter to vote for a candidate"
-				}
-			},
+			"methods": {},
 			"version": 1
 		}
 	},
@@ -267,7 +210,7 @@
 		"compilationTarget": {
 			"Voting.sol": "Voting"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "paris",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -280,11 +223,11 @@
 	},
 	"sources": {
 		"Voting.sol": {
-			"keccak256": "0x3896d010800428c3ab443b2b71123c81a3fbe1b76c5551a2dae284878184c25f",
+			"keccak256": "0x6008daedd8e38b1d1930121697b95c3fe62be21c290b1cbb33b18df46c34cbad",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://5e5b9abc0acfdea3ec8b05dc22a7a2185975e6723a2982107d1229831b62da6f",
-				"dweb:/ipfs/QmUKxRwACd2P3FxDCzwohrzRHg4jonXrpu8vo1J5kun4gX"
+				"bzz-raw://680af290ed302193a2434f00c88d4d32e5f8b4150ab2e14941282aaebd88370e",
+				"dweb:/ipfs/QmXJgUsHzWV7dpP9dVmNCH6yurnpwAHB4rR6cQjcfjJWXM"
 			]
 		}
 	},

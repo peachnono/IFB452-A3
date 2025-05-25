@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Owner Panel</title>
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <h1>🗳️ Admin Control Panel</h1>
+    <p id="status">Connecting...</p>
+    <div class="button-group">
+      <button id="startButton" onclick="startElection()">Start Election</button>
+
+      <button onclick="publishResults()">Publish Results</button>
+    </div>
+    <div class="candidate-section">
+      <h3>Candidates:</h3>
+      <ul id="candidateList">
+        Loading...
+      </ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+      const votingContractAddress =
+        "0xA586074FA4Fe3E546A132a16238abe37951D41fE";
+      const tallyContractAddress = "0x86072CbFF48dA3C1F01824a6761A03F105BCC697";
+
+      const votingABI = [
+        {
+          inputs: [],
+          name: "startElection",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "publishResults",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "getAllCandidates",
+          outputs: [{ internalType: "string[]", name: "", type: "string[]" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [{ internalType: "address", name: "", type: "address" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "electionStarted",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        }
+      ];
+
+      const tallyABI = [
+        {
+          inputs: [],
+          name: "resultsPublished",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [
+            { internalType: "string", name: "candidate", type: "string" }
+          ],
+          name: "voteCount",
+          outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+          name: "candidates",
+          outputs: [{ internalType: "string", name: "", type: "string" }],
+          stateMutability: "view",
+          type: "function"
+        }
+      ];
+
+      let votingContract;
+      let tallyContract;
+      let signer;
+      let userAddress;
+
+      async function init() {
+        try {
+          await provider.send("eth_requestAccounts", []);
+          signer = provider.getSigner();
+          userAddress = await signer.getAddress();
+
+          votingContract = new ethers.Contract(
+            votingContractAddress,
+            votingABI,
+            signer
+          );
+          tallyContract = new ethers.Contract(
+            tallyContractAddress, 
+            tallyABI,
+            provider
+          );
+
+          const contractOwner = await votingContract.owner();
+          if (userAddress.toLowerCase() !== contractOwner.toLowerCase()) {
+            document.getElementById("status").innerText =
+              "❌ Access denied. You are not the contract owner.";
+            return;
+          }
+
+          document.getElementById(
+            "status"
+          ).innerText = `Connected as owner: ${userAddress}`;
+          loadCandidates();
+          await checkElectionStarted();
+          await checkResultsPublished();
+        } catch (err) {
+          console.error(err);
+          document.getElementById("status").innerText =
+            "⚠️ Error: " + (err.message || "Unable to connect.");
+        }
+      }
+
+      async function checkElectionStarted() {
+        const hasStarted = await votingContract.electionStarted();
+        if (hasStarted) {
+          const startBtn = document.getElementById("startButton");
+          startBtn.disabled = true;
+          startBtn.innerText = "Election Started";
+          startBtn.style.opacity = "0.6";
+          startBtn.style.cursor = "not-allowed";
+        }
+      }
+
+      async function checkResultsPublished() {
+        try {
+          const published = await tallyContract.resultsPublished();
+          if (published) {
+            const publishBtn = document.querySelector(
+              "button[onclick='publishResults()']"
+            );
+            publishBtn.disabled = true;
+            publishBtn.innerText = "Results Published";
+            publishBtn.style.opacity = "0.6";
+            publishBtn.style.cursor = "not-allowed";
+            window.location.href = "results.html";
+          }
+        } catch (err) {
+          console.error("Error checking tally publish status:", err);
+        }
+      }
+
+      async function loadCandidates() {
+        try {
+          const list = document.getElementById("candidateList");
+          list.innerHTML = "";
+
+          let index = 0;
+          while (true) {
+            try {
+              const candidate = await tallyContract.candidates(index);
+              const votes = await tallyContract.voteCount(candidate);
+              const li = document.createElement("li");
+              li.textContent = `${candidate} – ${votes.toString()} votes`;
+              list.appendChild(li);
+              index++;
+            } catch {
+              break; // exit loop when index is out of bounds
+            }
+          }
+        } catch (err) {
+          console.error("Error loading candidates:", err);
+          document.getElementById("candidateList").innerText =
+            "⚠️ Failed to load candidates.";
+        }
+      }
+      setInterval(loadCandidates, 5000); 
+
+      async function startElection() {
+        try {
+          const tx = await votingContract.startElection();
+          document.getElementById("status").innerText =
+            "⏳ Starting election...";
+          await tx.wait();
+          document.getElementById("status").innerText = "✅ Election started.";
+          await checkElectionStarted();
+        } catch (err) {
+          console.error(err);
+          document.getElementById("status").innerText =
+            "❌ Failed to start election: " + (err.reason || err.message);
+        }
+      }
+
+      async function publishResults() {
+        try {
+          const tx = await votingContract.publishResults();
+          document.getElementById("status").innerText =
+            "⏳ Publishing results...";
+          await tx.wait();
+          document.getElementById("status").innerText = "✅ Results published.";
+          await checkResultsPublished();
+        } catch (err) {
+          console.error(err);
+          document.getElementById("status").innerText =
+            "❌ Failed to publish results: " + (err.reason || err.message);
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 contract Register {
@@ -15,6 +15,7 @@ contract Register {
         string citizenship;
         string residence;
         bool isRegistered;
+        bool hasVoted;
         uint256 voterId;
     }
 
@@ -24,6 +25,7 @@ contract Register {
     //Events to log when things happen
     event VoterVerified(address indexed voter);
     event VoterRegistered(address indexed voter, uint256 voterId);
+    event VoteStatusUpdated(address indexed voter);
 
     //Set deployer as admin
     constructor() {
@@ -76,10 +78,27 @@ contract Register {
             citizenship: _citizenship,
             residence: _residence,
             isRegistered: true,
+            hasVoted: false,
             voterId: voterCount
         });
 
         //Emit registration event
         emit VoterRegistered(msg.sender, voterCount);
+    }
+
+    function setHasVoted(address _voter) external {
+        require(voters[_voter].isRegistered, "Not registered");
+        require(!voters[_voter].hasVoted, "Already voted");
+
+        voters[_voter].hasVoted = true;
+        emit VoteStatusUpdated(_voter);
+    }
+
+    function isRegistered(address _voter) external view returns (bool) {
+        return voters[_voter].isRegistered;
+    }
+
+    function hasVoted(address _voter) external view returns (bool) {
+        return voters[_voter].hasVoted;
     }
 }

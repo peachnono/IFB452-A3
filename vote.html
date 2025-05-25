@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="vote.css" />
+    <title>Vote</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Cast Your Vote</h1>
+      <div id="candidateList">Loading candidates...</div>
+      <p id="status" style="margin-top: 1em; font-weight: bold"></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+      const votingContractAddress =
+        "0xA586074FA4Fe3E546A132a16238abe37951D41fE";
+      const registryContractAddress =
+        "0xFF6049B87215476aBf744eaA3a476cBAd46fB1cA";
+
+      const votingABI = [
+        {
+          inputs: [],
+          name: "getAllCandidates",
+          outputs: [{ internalType: "string[]", name: "", type: "string[]" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [
+            { internalType: "string", name: "candidate", type: "string" }
+          ],
+          name: "vote",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "resultsPublished",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "electionStarted",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        }
+      ];
+
+      const registryABI = [
+        {
+          inputs: [{ internalType: "address", name: "user", type: "address" }],
+          name: "isRegistered",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [{ internalType: "address", name: "user", type: "address" }],
+          name: "hasVoted",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        }
+      ];
+
+      let votingContract;
+      let registryContract;
+      let signer;
+      let userAddress;
+
+      async function init() {
+        try {
+          await provider.send("eth_requestAccounts", []);
+          signer = provider.getSigner();
+          userAddress = await signer.getAddress();
+
+          votingContract = new ethers.Contract(
+            votingContractAddress,
+            votingABI,
+            signer
+          );
+          registryContract = new ethers.Contract(
+            registryContractAddress,
+            registryABI,
+            provider
+          );
+
+          console.log("🔐 Connected as:", userAddress);
+
+          const registered = await registryContract.isRegistered(userAddress);
+          if (!registered) {
+            document.getElementById("status").innerText =
+              "❌ You are not a registered voter.";
+            return;
+          }
+
+          const alreadyVoted = await registryContract.hasVoted(userAddress);
+          if (alreadyVoted) {
+            document.getElementById("status").innerText =
+              "✅ You have already voted.";
+            return;
+          }
+
+          const started = await votingContract.electionStarted();
+          const ended = await votingContract.resultsPublished();
+
+          if (!started) {
+            document.getElementById("status").innerText =
+              "🕒 Voting has not started.";
+            return;
+          }
+
+          if (ended) {
+            window.location.href = "results.html";
+            return;
+          }
+
+          const candidates = await votingContract.getAllCandidates();
+          const list = document.getElementById("candidateList");
+          list.innerHTML = "";
+
+          candidates.forEach((candidate, index) => {
+            const btn = document.createElement("button");
+            btn.innerText = `Vote for ${candidate}`;
+            btn.className = `btn-${index % 6}`;
+            btn.onclick = () => vote(candidate);
+            list.appendChild(btn);
+          });
+        } catch (error) {
+          console.error("❗ Error during initialization:", error);
+          document.getElementById("status").innerText =
+            "⚠️ Error: " + (error.reason || error.message || "See console");
+        }
+      }
+
+      async function vote(candidate) {
+        try {
+          const tx = await votingContract.vote(candidate);
+          document.getElementById("status").innerText =
+            "⏳ Waiting for confirmation...";
+          await tx.wait();
+          document.getElementById(
+            "status"
+          ).innerText = `✅ Successfully voted for ${candidate}`;
+          document.getElementById("candidateList").innerHTML = "";
+
+          const resultsBtn = document.createElement("button");
+          resultsBtn.innerText = "📊 Check Results";
+          resultsBtn.className = "blue-button";
+          resultsBtn.style.marginTop = "1em";
+          resultsBtn.onclick = () => (window.location.href = "results.html");
+
+          const container = document.querySelector(".container");
+          container.appendChild(resultsBtn);
+        } catch (err) {
+          console.error("❗ Vote error:", err);
+          document.getElementById("status").innerText =
+            "⚠️ Vote failed: " + (err.reason || err.message || "See console");
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>
