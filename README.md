@@ -1,6 +1,6 @@
 # Simple Voting DApp
 
-This is a basic voting application built with Solidity and HTML/CSS/JavaScript using Ethers.js It allows users to register as voters, apply as candidates, and vote once the election begins.
+This is a basic voting application built with Solidity and HTML/CSS/JavaScript using Ethers.js. It allows users to register as voters, apply as candidates, and vote once the election begins.
 
 ## Features
 
