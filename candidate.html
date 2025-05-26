@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register Candidate</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Candidate Registration</h1>
+      <label for="candidateName">Candidate Name:</label>
+      <input type="text" id="candidateName" />
+      <button onclick="registerCandidate()">Register Candidate</button>
+      <h3 style="margin-top: 2em;">Registered Candidates:</h3>
+      <ul id="candidateList">Loading...</ul>
+      <p id="status" style="margin-top: 1em; font-weight: bold"></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
+    <script>
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const registerContractAddress = window.env.REGISTER_CONTRACT_ADDRESS;
+
+      const registerContractABI = [
+        {
+          inputs: [{ internalType: "string", name: "_name", type: "string" }],
+          name: "registerCandidate",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function"
+        },
+        {
+          inputs: [{ internalType: "string", name: "_name", type: "string" }],
+          name: "isCandidateRegistered",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "getAllCandidates",
+          outputs: [{ internalType: "string[]", name: "", type: "string[]" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          anonymous: false,
+          inputs: [
+            { indexed: true, internalType: "address", name: "candidate", type: "address" },
+            { indexed: false, internalType: "string", name: "name", type: "string" }
+          ],
+          name: "CandidateRegistered",
+          type: "event"
+        }
+      ];
+
+      let registerContract;
+      let signer;
+
+      async function setup() {
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+
+        registerContract = new ethers.Contract(
+          registerContractAddress,
+          registerContractABI,
+          signer
+        );
+
+        await loadCandidates();
+
+        registerContract.on("CandidateRegistered", (candidate, name) => {
+          console.log("Event: CandidateRegistered", name);
+          loadCandidates(); // Refresh list
+        });
+      }
+
+      setup();
+
+      async function registerCandidate() {
+        const name = document.getElementById("candidateName").value.trim();
+        const status = document.getElementById("status");
+
+        if (!name) {
+          status.innerHTML =
+            '<i class="fas fa-times-circle" style="color: red;"></i> Name cannot be empty.';
+          return;
+        }
+
+        try {
+          const isRegistered = await registerContract.isCandidateRegistered(name);
+          if (isRegistered) {
+            status.innerHTML =
+              '<i class="fas fa-exclamation-circle" style="color: orange;"></i> Candidate already registered.';
+            return;
+          }
+
+          const tx = await registerContract.registerCandidate(name);
+          status.innerHTML =
+            '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Registering candidate...';
+          await tx.wait();
+
+          status.innerHTML =
+            '<i class="fas fa-check-circle" style="color: green;"></i> Candidate registered successfully!';
+          document.getElementById("candidateName").value = "";
+        } catch (err) {
+          console.error("Candidate registration failed:", err);
+          status.innerHTML =
+            '<i class="fas fa-exclamation-triangle" style="color: red;"></i> Error: ' +
+            (err.reason || err.message || "Check console.");
+        }
+      }
+
+      async function loadCandidates() {
+        const list = document.getElementById("candidateList");
+        try {
+          const candidates = await registerContract.getAllCandidates();
+          if (candidates.length === 0) {
+            list.innerHTML = "<li>No candidates registered yet.</li>";
+          } else {
+            list.innerHTML = "";
+            candidates.forEach((name) => {
+              const li = document.createElement("li");
+              li.textContent = name;
+              list.appendChild(li);
+            });
+          }
+        } catch (err) {
+          console.error("Failed to load candidates:", err);
+          list.innerHTML = "<li>Error loading candidates.</li>";
+        }
+      }
+    </script>
+  </body>
+</html>

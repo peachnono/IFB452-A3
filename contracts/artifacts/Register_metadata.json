@@ -16,6 +16,25 @@
 					{
 						"indexed": true,
 						"internalType": "address",
+						"name": "candidate",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					}
+				],
+				"name": "CandidateRegistered",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
 						"name": "voter",
 						"type": "address"
 					}
@@ -71,12 +90,63 @@
 			{
 				"inputs": [
 					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "candidates",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAllCandidates",
+				"outputs": [
+					{
+						"internalType": "string[]",
+						"name": "",
+						"type": "string[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "address",
 						"name": "_voter",
 						"type": "address"
 					}
 				],
 				"name": "hasVoted",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"name": "isCandidateRegistered",
 				"outputs": [
 					{
 						"internalType": "bool",
@@ -104,6 +174,19 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_name",
+						"type": "string"
+					}
+				],
+				"name": "registerCandidate",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -257,7 +340,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"Register.sol": "Register"
+			"contracts/Register.sol": "Register"
 		},
 		"evmVersion": "paris",
 		"libraries": {},
@@ -271,12 +354,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"Register.sol": {
-			"keccak256": "0x851c435f2582b2ff37eac126abfc3db436ed617c76dcf3f6561b427d88eca7e5",
+		"contracts/Register.sol": {
+			"keccak256": "0x6f4a9207afa7cb17199e9747c94bf5fa703fa710de3f85fa2681bd3f4a35779e",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://251c80f336a284f4dff4af46031602841bff09cf159902d16f71660745bf0734",
-				"dweb:/ipfs/QmeiCk6L463U94NgnyCWFz65E8Ax5Jgn5yUTtMCkamK4Vw"
+				"bzz-raw://ad646497104510f310522fe1c50339ba4713d764c9c9ba35b79e7269766359e9",
+				"dweb:/ipfs/QmVNWdXHgE9HMUWB4MEX7PTqg6oGFTtc12GWJhFR4zWV8X"
 			]
 		}
 	},

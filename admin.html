@@ -4,14 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Owner Panel</title>
-    <link rel="stylesheet" href="admin.css" />
+    <link rel="stylesheet" href="styles/admin.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
   </head>
   <body>
-    <h1><i class="fas fa-gavel" style="color: orange;"></i> Admin Control Panel</h1>
+    <h1>
+      <i class="fas fa-gavel" style="color: orange"></i> Admin Control Panel
+    </h1>
     <p id="status">Connecting...</p>
     <div class="button-group">
       <button id="startButton" onclick="startElection()">Start Election</button>
@@ -19,28 +21,82 @@
     </div>
     <div class="candidate-section">
       <h3>Candidates:</h3>
-      <ul id="candidateList">Loading...</ul>
+      <ul id="candidateList">
+        Loading...
+      </ul>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
     <script>
       const provider = new ethers.providers.Web3Provider(window.ethereum);
 
-      const votingContractAddress = "0xDDb64fE46a91D46ee29420539FC25FD07c5FEa3E";
-      const tallyContractAddress = "0xaf5C4C6C7920B4883bC6252e9d9B8fE27187Cf68";
+      const votingContractAddress = window.env.VOTING_CONTRACT_ADDRESS;
+      const registryContractAddress = window.env.REGISTER_CONTRACT_ADDRESS;
+      const tallyContractAddress = window.env.TALLY_CONTRACT_ADDRESS;
 
       const votingABI = [
-        { inputs: [], name: "startElection", outputs: [], stateMutability: "nonpayable", type: "function" },
-        { inputs: [], name: "publishResults", outputs: [], stateMutability: "nonpayable", type: "function" },
-        { inputs: [], name: "getAllCandidates", outputs: [{ internalType: "string[]", name: "", type: "string[]" }], stateMutability: "view", type: "function" },
-        { inputs: [], name: "owner", outputs: [{ internalType: "address", name: "", type: "address" }], stateMutability: "view", type: "function" },
-        { inputs: [], name: "electionStarted", outputs: [{ internalType: "bool", name: "", type: "bool" }], stateMutability: "view", type: "function" }
+        {
+          inputs: [],
+          name: "startElection",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "publishResults",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "getAllCandidates",
+          outputs: [{ internalType: "string[]", name: "", type: "string[]" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [{ internalType: "address", name: "", type: "address" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "electionStarted",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        }
       ];
 
       const tallyABI = [
-        { inputs: [], name: "resultsPublished", outputs: [{ internalType: "bool", name: "", type: "bool" }], stateMutability: "view", type: "function" },
-        { inputs: [{ internalType: "string", name: "candidate", type: "string" }], name: "voteCount", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-        { inputs: [{ internalType: "uint256", name: "", type: "uint256" }], name: "candidates", outputs: [{ internalType: "string", name: "", type: "string" }], stateMutability: "view", type: "function" }
+        {
+          inputs: [],
+          name: "resultsPublished",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [
+            { internalType: "string", name: "candidate", type: "string" }
+          ],
+          name: "voteCount",
+          outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+          name: "candidates",
+          outputs: [{ internalType: "string", name: "", type: "string" }],
+          stateMutability: "view",
+          type: "function"
+        }
       ];
 
       let votingContract;
@@ -54,8 +110,16 @@
           signer = provider.getSigner();
           userAddress = await signer.getAddress();
 
-          votingContract = new ethers.Contract(votingContractAddress, votingABI, signer);
-          tallyContract = new ethers.Contract(tallyContractAddress, tallyABI, provider);
+          votingContract = new ethers.Contract(
+            votingContractAddress,
+            votingABI,
+            signer
+          );
+          tallyContract = new ethers.Contract(
+            tallyContractAddress,
+            tallyABI,
+            provider
+          );
 
           const contractOwner = await votingContract.owner();
           if (userAddress.toLowerCase() !== contractOwner.toLowerCase()) {
@@ -65,7 +129,8 @@
           }
 
           document.getElementById("status").innerHTML =
-            '<i class="fas fa-check-circle" style="color: green;"></i> Connected as owner: ' + userAddress;
+            '<i class="fas fa-check-circle" style="color: green;"></i> Connected as owner: ' +
+            userAddress;
 
           loadCandidates();
           await checkElectionStarted();
@@ -73,18 +138,20 @@
         } catch (err) {
           console.error(err);
           document.getElementById("status").innerHTML =
-            '<i class="fas fa-exclamation-triangle" style="color: orange;"></i> Error: ' + (err.message || "Unable to connect.");
+            '<i class="fas fa-exclamation-triangle" style="color: orange;"></i> Error: ' +
+            (err.message || "Unable to connect.");
         }
       }
 
       async function checkElectionStarted() {
         const hasStarted = await votingContract.electionStarted();
         if (hasStarted) {
-          const startBtn = document.getElementById("startButton");
-          startBtn.disabled = true;
-          startBtn.innerText = "Election Started";
-          startBtn.style.opacity = "0.6";
-          startBtn.style.cursor = "not-allowed";
+          0xe78a0f7e598cc8b0bb87894b0f60dd2a88d6a8ab;
+          const startButton = document.getElementById("startButton");
+          startButton.disabled = true;
+          startButton.innerText = "Election Started";
+          startButton.style.opacity = "0.6";
+          startButton.style.cursor = "not-allowed";
         }
       }
 
@@ -92,11 +159,13 @@
         try {
           const published = await tallyContract.resultsPublished();
           if (published) {
-            const publishBtn = document.querySelector("button[onclick='publishResults()']");
-            publishBtn.disabled = true;
-            publishBtn.innerText = "Results Published";
-            publishBtn.style.opacity = "0.6";
-            publishBtn.style.cursor = "not-allowed";
+            const publishButton = document.querySelector(
+              "button[onclick='publishResults()']"
+            );
+            publishButton.disabled = true;
+            publishButton.innerText = "Results Published";
+            publishButton.style.opacity = "0.6";
+            publishButton.style.cursor = "not-allowed";
             window.location.href = "results.html";
           }
         } catch (err) {

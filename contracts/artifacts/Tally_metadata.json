@@ -6,31 +6,9 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [
-					{
-						"internalType": "string[]",
-						"name": "_candidates",
-						"type": "string[]"
-					},
-					{
-						"internalType": "address",
-						"name": "_registryAddress",
-						"type": "address"
-					},
-					{
-						"internalType": "address",
-						"name": "_tallyAddress",
-						"type": "address"
-					}
-				],
+				"inputs": [],
 				"stateMutability": "nonpayable",
 				"type": "constructor"
-			},
-			{
-				"anonymous": false,
-				"inputs": [],
-				"name": "ElectionStarted",
-				"type": "event"
 			},
 			{
 				"anonymous": false,
@@ -43,19 +21,56 @@
 				"inputs": [
 					{
 						"indexed": false,
-						"internalType": "address",
-						"name": "voter",
-						"type": "address"
-					},
-					{
-						"indexed": false,
 						"internalType": "string",
 						"name": "candidate",
 						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "count",
+						"type": "uint256"
 					}
 				],
-				"name": "VoteCasted",
+				"name": "VotesTallied",
 				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "candidate",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "count",
+						"type": "uint256"
+					}
+				],
+				"name": "addVotes",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"name": "candidateExists",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
 			},
 			{
 				"inputs": [
@@ -78,25 +93,17 @@
 			},
 			{
 				"inputs": [],
-				"name": "electionStarted",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "",
-						"type": "bool"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "getAllCandidates",
+				"name": "getAllResults",
 				"outputs": [
 					{
 						"internalType": "string[]",
 						"name": "",
 						"type": "string[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "",
+						"type": "uint256[]"
 					}
 				],
 				"stateMutability": "view",
@@ -124,53 +131,7 @@
 			},
 			{
 				"inputs": [],
-				"name": "registry",
-				"outputs": [
-					{
-						"internalType": "contract IVoterRegistry",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
 				"name": "resultsPublished",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "",
-						"type": "bool"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "startElection",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "tally",
-				"outputs": [
-					{
-						"internalType": "contract ITally",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "tallyResultsPublished",
 				"outputs": [
 					{
 						"internalType": "bool",
@@ -184,14 +145,46 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "_votingContract",
+						"type": "address"
+					}
+				],
+				"name": "setVotingContract",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "string",
-						"name": "candidate",
+						"name": "",
 						"type": "string"
 					}
 				],
-				"name": "vote",
-				"outputs": [],
-				"stateMutability": "nonpayable",
+				"name": "voteCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "votingContract",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			}
 		],
@@ -208,7 +201,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"Voting.sol": "Voting"
+			"contracts/Tally.sol": "Tally"
 		},
 		"evmVersion": "paris",
 		"libraries": {},
@@ -222,12 +215,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"Voting.sol": {
-			"keccak256": "0x6008daedd8e38b1d1930121697b95c3fe62be21c290b1cbb33b18df46c34cbad",
+		"contracts/Tally.sol": {
+			"keccak256": "0x4ce6ce08bbad397704247b9a8a0efa2154787bab03e22fec2bda4958e12b1be2",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://680af290ed302193a2434f00c88d4d32e5f8b4150ab2e14941282aaebd88370e",
-				"dweb:/ipfs/QmXJgUsHzWV7dpP9dVmNCH6yurnpwAHB4rR6cQjcfjJWXM"
+				"bzz-raw://e523e8f552adbddb49a468896de63bee34f682e0b58e1304947c0cdc4b97fc71",
+				"dweb:/ipfs/QmdGgvp2FVHQEMwdt5uMLkB2p7njjWhLBTLNV1DWSWzZGX"
 			]
 		}
 	},

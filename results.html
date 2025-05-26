@@ -1,83 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Election Results</title>
-  <link rel="stylesheet" href="admin.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-  />
-</head>
-<body>
-  <div class="candidate-section">
-    <h1><i class="fas fa-chart-bar"></i> Final Election Results</h1>
-    <p id="status">Connecting to blockchain...</p>
-    <ul id="candidateList">Loading...</ul>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Election Results</title>
+    <link rel="stylesheet" href="styles/results.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="candidate-section">
+      <h1><i class="fas fa-chart-bar"></i> Final Election Results</h1>
+      <p id="status">Connecting to blockchain...</p>
+      <ul id="candidateList">
+        Loading...
+      </ul>
+    </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <script>
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const tallyContractAddress = "0xaf5C4C6C7920B4883bC6252e9d9B8fE27187Cf68";
-  
-    const tallyABI = [
-      {
-        inputs: [],
-        name: "resultsPublished",
-        outputs: [{ internalType: "bool", name: "", type: "bool" }],
-        stateMutability: "view",
-        type: "function"
-      },
-      {
-        inputs: [],
-        name: "getAllResults",
-        outputs: [
-          { internalType: "string[]", name: "", type: "string[]" },
-          { internalType: "uint256[]", name: "", type: "uint256[]" }
-        ],
-        stateMutability: "view",
-        type: "function"
-      }
-    ];
-  
-    let tallyContract;
-  
-    async function init() {
-      try {
-        await provider.send("eth_requestAccounts", []);
-        tallyContract = new ethers.Contract(tallyContractAddress, tallyABI, provider);
-  
-        const published = await tallyContract.resultsPublished();
-        if (!published) {
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
+    <script>
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const tallyContractAddress = window.env.TALLY_CONTRACT_ADDRESS;
+
+      const tallyABI = [
+        {
+          inputs: [],
+          name: "resultsPublished",
+          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          stateMutability: "view",
+          type: "function"
+        },
+        {
+          inputs: [],
+          name: "getAllResults",
+          outputs: [
+            { internalType: "string[]", name: "", type: "string[]" },
+            { internalType: "uint256[]", name: "", type: "uint256[]" }
+          ],
+          stateMutability: "view",
+          type: "function"
+        }
+      ];
+
+      let tallyContract;
+
+      async function init() {
+        try {
+          await provider.send("eth_requestAccounts", []);
+          tallyContract = new ethers.Contract(
+            tallyContractAddress,
+            tallyABI,
+            provider
+          );
+
+          const published = await tallyContract.resultsPublished();
+          if (!published) {
+            document.getElementById("status").innerHTML =
+              '<i class="fas fa-exclamation-triangle" style="color: orange;"></i> Results not published yet.';
+            return;
+          }
+
           document.getElementById("status").innerHTML =
-            '<i class="fas fa-exclamation-triangle" style="color: orange;"></i> Results not published yet.';
-          return;
+            '<i class="fas fa-check-circle" style="color: green;"></i> Results published!';
+
+          const candidateList = document.getElementById("candidateList");
+          candidateList.innerHTML = "";
+
+          const [candidates, votes] = await tallyContract.getAllResults();
+
+          for (let i = 0; i < candidates.length; i++) {
+            const li = document.createElement("li");
+            li.textContent = `${candidates[i]}: ${votes[i].toString()} votes`;
+            candidateList.appendChild(li);
+          }
+        } catch (err) {
+          console.error(err);
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-times-circle" style="color: red;"></i> Error fetching results: ' +
+            (err.reason || err.message);
         }
-  
-        document.getElementById("status").innerHTML =
-          '<i class="fas fa-check-circle" style="color: green;"></i> Results published!';
-  
-        const candidateList = document.getElementById("candidateList");
-        candidateList.innerHTML = "";
-  
-        const [candidates, votes] = await tallyContract.getAllResults();
-  
-        for (let i = 0; i < candidates.length; i++) {
-          const li = document.createElement("li");
-          li.textContent = `${candidates[i]}: ${votes[i].toString()} votes`;
-          candidateList.appendChild(li);
-        }
-      } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerHTML =
-          '<i class="fas fa-times-circle" style="color: red;"></i> Error fetching results: ' +
-          (err.reason || err.message);
       }
-    }
-  
-    init();
-  </script>
-</body>
+
+      init();
+    </script>
+  </body>
 </html>

@@ -13,12 +13,12 @@ button {
     transition: background-color 0.2s ease-in-out;
   }
   
-  .btn-0 { background-color: #3498db; } 
-  .btn-1 { background-color: #27ae60; } 
-  .btn-2 { background-color: #e67e22; } 
-  .btn-3 { background-color: #9b59b6; } 
-  .btn-4 { background-color: #e74c3c; } 
-  .btn-5 { background-color: #16a085; } 
+  .button-0 { background-color: #3498db; } 
+  .button-1 { background-color: #27ae60; } 
+  .button-2 { background-color: #e67e22; } 
+  .button-3 { background-color: #9b59b6; } 
+  .button-4 { background-color: #e74c3c; } 
+  .button-5 { background-color: #16a085; } 
   
   button:hover {
     opacity: 0.9;

@@ -4,27 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Register Voter</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles/styles.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
-    <style>
-      body {
-        text-align: center;
-        font-family: Arial, Helvetica, sans-serif;
-      }
-      .container {
-        width: 25%;
-        margin: auto;
-        display: flex;
-        flex-direction: column;
-      }
-      input,
-      button {
-        margin: 5px 0;
-      }
-    </style>
   </head>
   <body>
     <div class="container">
@@ -46,10 +30,11 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
     <script>
       const provider = new ethers.providers.Web3Provider(window.ethereum);
 
-      const registerContractAddress = "0xEC5d4F247aF81A843612eb1371CBCfa88b762119";
+      const registerContractAddress = window.env.REGISTER_CONTRACT_ADDRESS;
 
       const registerContractABI = [
         {
@@ -131,7 +116,6 @@
           }
 
           const tx = await registerContract.registerVoter(name, age, citizenship, residence);
-          console.log("Transaction sent:", tx.hash);
 
           document.getElementById("status").innerHTML =
             '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Waiting for confirmation...';

@@ -5,6 +5,10 @@ interface IVoterRegistry {
     function isRegistered(address user) external view returns (bool);
     function hasVoted(address user) external view returns (bool);
     function setHasVoted(address user) external;
+
+    function registerCandidate(string memory name) external;
+    function isCandidateRegistered(string memory name) external view returns (bool);
+    function getAllCandidates() external view returns (string[] memory);
 }
 
 interface ITally {
@@ -20,14 +24,13 @@ contract Voting {
     IVoterRegistry public registry;
     ITally public tally;
 
-    string[] public candidates;
-
     event ElectionStarted();
     event VoteCasted(address voter, string candidate);
     event ResultsPublished();
+    event CandidateRegistered(address indexed candidate, string name);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can perform this action");
+        require(msg.sender == owner, "Only the admin can perform this action");
         _;
     }
 
@@ -38,12 +41,10 @@ contract Voting {
     }
 
     constructor(
-        string[] memory _candidates,
         address _registryAddress,
         address _tallyAddress
     ) {
         owner = msg.sender;
-        candidates = _candidates;
         registry = IVoterRegistry(_registryAddress);
         tally = ITally(_tallyAddress);
     }
@@ -58,9 +59,11 @@ contract Voting {
         require(registry.isRegistered(msg.sender), "Not registered");
         require(!registry.hasVoted(msg.sender), "Already voted");
 
+        string[] memory allCandidates = registry.getAllCandidates();
+
         bool valid = false;
-        for (uint i = 0; i < candidates.length; i++) {
-            if (keccak256(bytes(candidates[i])) == keccak256(bytes(candidate))) {
+        for (uint i = 0; i < allCandidates.length; i++) {
+            if (keccak256(bytes(allCandidates[i])) == keccak256(bytes(candidate))) {
                 valid = true;
                 break;
             }
@@ -71,6 +74,13 @@ contract Voting {
         tally.addVotes(candidate, 1);
         emit VoteCasted(msg.sender, candidate);
     }
+
+    function registerCandidate(string memory name) public {
+        require(!electionStarted, "Cannot register after election starts");
+        registry.registerCandidate(name);
+        emit CandidateRegistered(msg.sender, name);
+    }
+
 
     function publishResults() public onlyOwner {
         require(!tallyResultsPublished(), "Already published");
@@ -87,6 +97,7 @@ contract Voting {
     }
 
     function getAllCandidates() public view returns (string[] memory) {
-        return candidates;
+        return registry.getAllCandidates();
     }
+
 }

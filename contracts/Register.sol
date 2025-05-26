@@ -19,13 +19,23 @@ contract Register {
         uint256 voterId;
     }
 
-    //Map each Ethereum address to its Voter record
+    //Candidate data struct
+    struct Candidate {
+        string name;
+        address candidateAddress;
+    }
+
+    //Map each Ethereum address to its Voter and Candidate record
     mapping(address => Voter) public voters;
+    mapping(string => bool) public isCandidateRegistered;
+
+    string[] public candidates;
 
     //Events to log when things happen
     event VoterVerified(address indexed voter);
     event VoterRegistered(address indexed voter, uint256 voterId);
     event VoteStatusUpdated(address indexed voter);
+    event CandidateRegistered(address indexed candidate, string name);
 
     //Set deployer as admin
     constructor() {
@@ -100,5 +110,19 @@ contract Register {
 
     function hasVoted(address _voter) external view returns (bool) {
         return voters[_voter].hasVoted;
+    }
+
+    function registerCandidate(string memory _name) public {
+        require(bytes(_name).length > 0, "Name cannot be empty");
+        require(!isCandidateRegistered[_name], "Candidate already registered");
+
+        isCandidateRegistered[_name] = true;
+        candidates.push(_name);
+
+        emit CandidateRegistered(msg.sender, _name);
+    }
+
+    function getAllCandidates() public view returns (string[] memory) {
+        return candidates;
     }
 }

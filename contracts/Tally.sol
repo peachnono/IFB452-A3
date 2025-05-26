@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/// @title Tally - A simple vote counting and publishing contract
-/// @author 
-/// @notice This contract is used to tally votes after an election and publish the final results
 contract Tally {
     
     // Address of the contract creator (typically the election authority)
@@ -21,6 +18,7 @@ contract Tally {
     mapping(string => uint256) public voteCount;
 
     // Array to keep track of all candidate names
+    mapping(string => bool) public candidateExists;
     string[] public candidates;
 
     // Event triggered when votes for a candidate are tallied
@@ -29,9 +27,9 @@ contract Tally {
     // Event triggered once the results are officially published
     event ResultsPublished();
 
-    /// @dev Restricts access to functions to only the contract owner
+    // Restricts access to functions to only the contract owner
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only the owner can perform this action.");
+        require(msg.sender == owner, "Only the admin can perform this action.");
         _;
     }
 
@@ -40,36 +38,40 @@ contract Tally {
         _;
     }
 
-    /// @dev Prevents functions from being called again after results are published
+    /// Prevents functions from being called again after results are published
     modifier notPublished() {
         require(!resultsPublished, "Results have already been published.");
         _;
     }
 
-    /// @notice Constructor to initialize the contract with the candidate list
-    /// @param _candidates Array of candidate names participating in the election
-    constructor(string[] memory _candidates) {
+    // Constructor to initialise the contract with the candidate list
+    constructor() {
         owner = msg.sender;
-        candidates = _candidates;
         resultsPublished = false;
     }
 
-    /// @notice Add votes to a candidate's total (can be called multiple times before publishing)
-    /// @param candidate The name of the candidate to receive additional votes
-    /// @param count Number of votes to add
+    // Add votes to a candidate's total (can be called multiple times before publishing)
+    // candidate The name of the candidate to receive additional votes
+    // count Number of votes to add
     function addVotes(string memory candidate, uint256 count) external onlyVotingContract {
-    voteCount[candidate] += count;
-    emit VotesTallied(candidate, voteCount[candidate]);
+        if (!candidateExists[candidate]) {
+            candidateExists[candidate] = true;
+            candidates.push(candidate);
+        }
+
+        voteCount[candidate] += count;
+        emit VotesTallied(candidate, voteCount[candidate]);
     }
 
-    /// @notice Finalizes and publishes the election results
-    /// @dev Once published, votes can no longer be added
+    // Finalises and publishes the election results
+    // Once published, votes can no longer be added
     function publishResults() public onlyVotingContract notPublished {
         require(msg.sender == votingContract, "Not voting contract");
         resultsPublished = true;
         emit ResultsPublished();
     }
 
+    // Gets all results
     function getAllResults() public view returns (string[] memory, uint256[] memory) {
     uint256[] memory counts = new uint256[](candidates.length);
     for (uint i = 0; i < candidates.length; i++) {
