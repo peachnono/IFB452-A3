@@ -110,15 +110,15 @@
               '<i class="fas fa-check-circle"></i> You have already voted.';
             return;
 
-            const resultsBtn = document.createElement("button");
-            resultsBtn.innerHTML =
+            const resultsButton = document.createElement("button");
+            resultsButton.innerHTML =
               '<i class="fas fa-chart-bar"></i> Check Results';
-            resultsBtn.className = "blue-button";
-            resultsBtn.style.marginTop = "1em";
-            resultsBtn.onclick = () => (window.location.href = "results.html");
+            resultsButton.className = "blue-button";
+            resultsButton.style.marginTop = "1em";
+            resultsButton.onclick = () => (window.location.href = "results.html");
 
             const container = document.querySelector(".container");
-            container.appendChild(resultsBtn);
+            container.appendChild(resultsButton);
 
             return;
           }
@@ -167,15 +167,15 @@
           ).innerHTML = `<i class="fas fa-check-circle" style="color: green;"></i> Successfully voted for ${candidate}`;
           document.getElementById("candidateList").innerHTML = "";
 
-          const resultsBtn = document.createElement("button");
-          resultsBtn.innerHTML =
+          const resultsButton = document.createElement("button");
+          resultsButton.innerHTML =
             '<i class="fas fa-chart-bar"></i> Check Results';
-          resultsBtn.className = "blue-button";
-          resultsBtn.style.marginTop = "1em";
-          resultsBtn.onclick = () => (window.location.href = "results.html");
+          resultsButton.className = "blue-button";
+          resultsButton.style.marginTop = "1em";
+          resultsButton.onclick = () => (window.location.href = "results.html");
 
           const container = document.querySelector(".container");
-          container.appendChild(resultsBtn);
+          container.appendChild(resultsButton);
         } catch (err) {
           console.error("Vote error:", err);
           document.getElementById("status").innerHTML =

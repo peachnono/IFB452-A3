@@ -56,7 +56,7 @@ body {
 
   .blue-button {
     margin-top: 1em;
-    background-color: #007BFF; /* Bootstrap blue */
+    background-color: #007BFF;
     color: white;
     border: none;
     padding: 10px 20px;
