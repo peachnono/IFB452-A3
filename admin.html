@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Owner Panel</title>
+    <title>Admin Panel</title>
     <link rel="stylesheet" href="styles/admin.css" />
     <link
       rel="stylesheet"
@@ -15,13 +15,20 @@
       <i class="fas fa-gavel" style="color: orange"></i> Admin Control Panel
     </h1>
     <p id="status">Connecting...</p>
+
     <div class="button-group">
       <button id="startButton" onclick="startElection()">Start Election</button>
       <button onclick="publishResults()">Publish Results</button>
     </div>
+
     <div class="candidate-section">
-      <h3>Candidates:</h3>
+      <h3>Approved Candidates:</h3>
       <ul id="candidateList">
+        Loading...
+      </ul>
+
+      <h3 style="margin-top: 2em">Pending Candidates:</h3>
+      <ul id="pendingCandidateList">
         Loading...
       </ul>
     </div>
@@ -30,79 +37,110 @@
     <script src="config.js"></script>
     <script>
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-
       const votingContractAddress = window.env.VOTING_CONTRACT_ADDRESS;
-      const registryContractAddress = window.env.REGISTER_CONTRACT_ADDRESS;
       const tallyContractAddress = window.env.TALLY_CONTRACT_ADDRESS;
 
       const votingABI = [
         {
-          inputs: [],
           name: "startElection",
-          outputs: [],
+          type: "function",
           stateMutability: "nonpayable",
-          type: "function"
+          inputs: [],
+          outputs: []
         },
         {
-          inputs: [],
           name: "publishResults",
-          outputs: [],
+          type: "function",
           stateMutability: "nonpayable",
-          type: "function"
+          inputs: [],
+          outputs: []
         },
         {
-          inputs: [],
           name: "getAllCandidates",
-          outputs: [{ internalType: "string[]", name: "", type: "string[]" }],
+          type: "function",
           stateMutability: "view",
-          type: "function"
+          inputs: [],
+          outputs: [{ type: "string[]" }]
         },
         {
-          inputs: [],
           name: "owner",
-          outputs: [{ internalType: "address", name: "", type: "address" }],
+          type: "function",
           stateMutability: "view",
-          type: "function"
+          inputs: [],
+          outputs: [{ type: "address" }]
         },
         {
-          inputs: [],
           name: "electionStarted",
-          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          type: "function",
           stateMutability: "view",
-          type: "function"
+          inputs: [],
+          outputs: [{ type: "bool" }]
+        },
+        {
+          name: "approveCandidate",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "name", type: "string" }],
+          outputs: []
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "proposer",
+              type: "address"
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "name",
+              type: "string"
+            }
+          ],
+          name: "CandidateProposed",
+          type: "event"
+        },
+        {
+          name: "pendingCandidates",
+          type: "function",
+          stateMutability: "view",
+          inputs: [{ name: "name", type: "string" }],
+          outputs: [
+            { name: "name", type: "string" },
+            { name: "submitter", type: "address" },
+            { name: "exists", type: "bool" }
+          ]
         }
       ];
 
       const tallyABI = [
         {
-          inputs: [],
           name: "resultsPublished",
-          outputs: [{ internalType: "bool", name: "", type: "bool" }],
+          type: "function",
           stateMutability: "view",
-          type: "function"
+          inputs: [],
+          outputs: [{ type: "bool" }]
         },
         {
-          inputs: [
-            { internalType: "string", name: "candidate", type: "string" }
-          ],
           name: "voteCount",
-          outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+          type: "function",
           stateMutability: "view",
-          type: "function"
+          inputs: [{ name: "candidate", type: "string" }],
+          outputs: [{ type: "uint256" }]
         },
         {
-          inputs: [{ internalType: "uint256", name: "", type: "uint256" }],
           name: "candidates",
-          outputs: [{ internalType: "string", name: "", type: "string" }],
+          type: "function",
           stateMutability: "view",
-          type: "function"
+          inputs: [{ name: "", type: "uint256" }],
+          outputs: [{ type: "string" }]
         }
       ];
 
-      let votingContract;
-      let tallyContract;
-      let signer;
-      let userAddress;
+      let votingContract, tallyContract, signer, userAddress;
+      let proposedCandidates = new Set();
 
       async function init() {
         try {
@@ -132,9 +170,12 @@
             '<i class="fas fa-check-circle" style="color: green;"></i> Connected as owner: ' +
             userAddress;
 
-          loadCandidates();
+          await loadCandidates();
+          await loadPendingCandidates();
           await checkElectionStarted();
           await checkResultsPublished();
+
+          listenToProposals();
         } catch (err) {
           console.error(err);
           document.getElementById("status").innerHTML =
@@ -143,10 +184,62 @@
         }
       }
 
+      async function startElection() {
+        try {
+          const tx = await votingContract.startElection();
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Starting election...';
+          await tx.wait();
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-check-circle" style="color: green;"></i> Election has started.';
+
+          // Disable button after starting
+          const startButton = document.getElementById("startButton");
+          startButton.disabled = true;
+          startButton.innerText = "Election Started";
+          startButton.style.opacity = "0.6";
+          startButton.style.cursor = "not-allowed";
+        } catch (err) {
+          console.error("Failed to start election:", err);
+          document.getElementById(
+            "status"
+          ).innerHTML = `<i class="fas fa-times-circle" style="color: red;"></i> Failed to start election: ${
+            err.reason || err.message
+          }`;
+        }
+      }
+
+      async function publishResults() {
+        try {
+          const tx = await votingContract.publishResults();
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Publishing results...';
+          await tx.wait();
+          document.getElementById("status").innerHTML =
+            '<i class="fas fa-check-circle" style="color: green;"></i> Results have been published.';
+
+          const publishButton = document.querySelector(
+            "button[onclick='publishResults()']"
+          );
+          publishButton.disabled = true;
+          publishButton.innerText = "Results Published";
+          publishButton.style.opacity = "0.6";
+          publishButton.style.cursor = "not-allowed";
+
+          window.location.href = "results.html";
+        } catch (err) {
+          console.error("Failed to publish results:", err);
+          document.getElementById(
+            "status"
+          ).innerHTML = `<i class="fas fa-times-circle" style="color: red;"></i> Failed to publish results: ${
+            err.reason || err.message
+          }`;
+        }
+      }
+
       async function checkElectionStarted() {
         const hasStarted = await votingContract.electionStarted();
         if (hasStarted) {
-          0xe78a0f7e598cc8b0bb87894b0f60dd2a88d6a8ab;
           const startButton = document.getElementById("startButton");
           startButton.disabled = true;
           startButton.innerText = "Election Started";
@@ -174,66 +267,75 @@
       }
 
       async function loadCandidates() {
+        const list = document.getElementById("candidateList");
         try {
-          const list = document.getElementById("candidateList");
+          const candidates = await votingContract.getAllCandidates();
           list.innerHTML = "";
-
-          let index = 0;
-          while (true) {
-            try {
-              const candidate = await tallyContract.candidates(index);
-              const votes = await tallyContract.voteCount(candidate);
-              const li = document.createElement("li");
-              li.textContent = `${candidate} – ${votes.toString()} votes`;
-              list.appendChild(li);
-              index++;
-            } catch {
-              break;
-            }
+          for (const candidate of candidates) {
+            const votes = await tallyContract.voteCount(candidate);
+            const li = document.createElement("li");
+            li.textContent = `${candidate} – ${votes} votes`;
+            list.appendChild(li);
           }
         } catch (err) {
-          console.error("Error loading candidates:", err);
-          document.getElementById("candidateList").innerHTML =
-            '<i class="fas fa-exclamation-triangle" style="color: orange;"></i> Failed to load candidates.';
+          console.error("Error loading approved candidates:", err);
+          list.innerHTML = "<li>Error loading approved candidates.</li>";
+        }
+      }
+
+      async function loadPendingCandidates() {
+        const list = document.getElementById("pendingCandidateList");
+        list.innerHTML = "";
+
+        for (const name of proposedCandidates) {
+          try {
+            const candidate = await votingContract.pendingCandidates(name);
+            if (candidate.exists) {
+              const li = document.createElement("li");
+              li.innerHTML = `${candidate.name} <button onclick="approve('${candidate.name}')">Approve</button>`;
+              list.appendChild(li);
+            }
+          } catch {
+            continue;
+          }
+        }
+
+        if (!list.hasChildNodes()) {
+          list.innerHTML = "<li>No pending candidates.</li>";
+        }
+      }
+
+      function listenToProposals() {
+        votingContract.on("CandidateProposed", (proposer, name) => {
+          proposedCandidates.add(name);
+          loadPendingCandidates();
+        });
+      }
+
+      async function approve(name) {
+        try {
+          const tx = await votingContract.approveCandidate(name);
+          document.getElementById(
+            "status"
+          ).innerHTML = `<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Approving ${name}...`;
+          await tx.wait();
+          document.getElementById(
+            "status"
+          ).innerHTML = `<i class="fas fa-check-circle" style="color: green;"></i> ${name} approved.`;
+          proposedCandidates.delete(name);
+          await loadPendingCandidates();
+          await loadCandidates();
+        } catch (err) {
+          console.error("Approval failed:", err);
+          document.getElementById(
+            "status"
+          ).innerHTML = `<i class="fas fa-times-circle" style="color: red;"></i> Failed to approve: ${
+            err.reason || err.message
+          }`;
         }
       }
 
       setInterval(loadCandidates, 5000);
-
-      async function startElection() {
-        try {
-          const tx = await votingContract.startElection();
-          document.getElementById("status").innerHTML =
-            '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Starting election...';
-          await tx.wait();
-          document.getElementById("status").innerHTML =
-            '<i class="fas fa-check-circle" style="color: green;"></i> Election started.';
-          await checkElectionStarted();
-        } catch (err) {
-          console.error(err);
-          document.getElementById("status").innerHTML =
-            '<i class="fas fa-times-circle" style="color: red;"></i> Failed to start election: ' +
-            (err.reason || err.message);
-        }
-      }
-
-      async function publishResults() {
-        try {
-          const tx = await votingContract.publishResults();
-          document.getElementById("status").innerHTML =
-            '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Publishing results...';
-          await tx.wait();
-          document.getElementById("status").innerHTML =
-            '<i class="fas fa-check-circle" style="color: green;"></i> Results published.';
-          await checkResultsPublished();
-        } catch (err) {
-          console.error(err);
-          document.getElementById("status").innerHTML =
-            '<i class="fas fa-times-circle" style="color: red;"></i> Failed to publish results: ' +
-            (err.reason || err.message);
-        }
-      }
-
       init();
     </script>
   </body>

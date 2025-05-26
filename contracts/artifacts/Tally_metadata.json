@@ -216,11 +216,11 @@
 	},
 	"sources": {
 		"contracts/Tally.sol": {
-			"keccak256": "0x4ce6ce08bbad397704247b9a8a0efa2154787bab03e22fec2bda4958e12b1be2",
+			"keccak256": "0xb661206f9c8c4028556bbe568e46448470482b84fdf2e1fc61c17715501bd3a2",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e523e8f552adbddb49a468896de63bee34f682e0b58e1304947c0cdc4b97fc71",
-				"dweb:/ipfs/QmdGgvp2FVHQEMwdt5uMLkB2p7njjWhLBTLNV1DWSWzZGX"
+				"bzz-raw://472127b9d0cb98a30468e26ce7c64d5eb093eeb89ce0bdfb816279749d48af7d",
+				"dweb:/ipfs/QmU6c2DeQBUnjcH6HpMezGJ3qXhA2gjRmsvwQdfFrvFwFW"
 			]
 		}
 	},

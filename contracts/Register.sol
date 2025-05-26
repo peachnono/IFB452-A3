@@ -1,9 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+
 contract Register {
     //Track who deployed the contract
     address public admin;
+    address public votingContract;
+
+    modifier onlyVotingContract() {
+        require(msg.sender == votingContract, "Only Voting contract can call this");
+        _;
+    }
+
+    function setVotingContract(address _votingContract) external {
+        require(msg.sender == admin, "Only admin can set voting contract");
+        votingContract = _votingContract;
+    }
 
     //Counter for assigning unique voter IDs
     uint256 public voterCount;
@@ -112,7 +124,8 @@ contract Register {
         return voters[_voter].hasVoted;
     }
 
-    function registerCandidate(string memory _name) public {
+    function registerCandidate(string memory _name) public onlyVotingContract {
+
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(!isCandidateRegistered[_name], "Candidate already registered");
 

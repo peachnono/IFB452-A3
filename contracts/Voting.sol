@@ -24,10 +24,20 @@ contract Voting {
     IVoterRegistry public registry;
     ITally public tally;
 
+    struct PendingCandidate {
+        string name;
+        address submitter;
+        bool exists;
+    }
+
+    mapping(string => PendingCandidate) public pendingCandidates;
+
+
     event ElectionStarted();
     event VoteCasted(address voter, string candidate);
     event ResultsPublished();
-    event CandidateRegistered(address indexed candidate, string name);
+    event CandidateProposed(address indexed proposer, string name);
+    event CandidateApproved(string name);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Only the admin can perform this action");
@@ -75,12 +85,26 @@ contract Voting {
         emit VoteCasted(msg.sender, candidate);
     }
 
-    function registerCandidate(string memory name) public {
-        require(!electionStarted, "Cannot register after election starts");
-        registry.registerCandidate(name);
-        emit CandidateRegistered(msg.sender, name);
+    function proposeCandidate(string memory name) public {
+        require(!electionStarted, "Cannot propose after election starts");
+        require(!pendingCandidates[name].exists, "Already proposed");
+
+        pendingCandidates[name] = PendingCandidate({
+            name: name,
+            submitter: msg.sender,
+            exists: true
+        });
+
+        emit CandidateProposed(msg.sender, name);
     }
 
+    function approveCandidate(string memory name) public onlyOwner {
+        require(pendingCandidates[name].exists, "Candidate not proposed");
+
+        registry.registerCandidate(name);
+        delete pendingCandidates[name]; // remove from pending
+        emit CandidateApproved(name);
+    }
 
     function publishResults() public onlyOwner {
         require(!tallyResultsPublished(), "Already published");

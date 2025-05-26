@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register Candidate</title>
+    <title>Propose Candidate</title>
     <link rel="stylesheet" href="styles/styles.css" />
     <link
       rel="stylesheet"
@@ -12,11 +12,11 @@
   </head>
   <body>
     <div class="container">
-      <h1>Candidate Registration</h1>
+      <h1>Propose Candidate</h1>
       <label for="candidateName">Candidate Name:</label>
       <input type="text" id="candidateName" />
-      <button onclick="registerCandidate()">Register Candidate</button>
-      <h3 style="margin-top: 2em;">Registered Candidates:</h3>
+      <button onclick="proposeCandidate()">Propose Candidate</button>
+      <h3 style="margin-top: 2em;">Approved Candidates:</h3>
       <ul id="candidateList">Loading...</ul>
       <p id="status" style="margin-top: 1em; font-weight: bold"></p>
     </div>
@@ -25,21 +25,14 @@
     <script src="config.js"></script>
     <script>
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const registerContractAddress = window.env.REGISTER_CONTRACT_ADDRESS;
+      const votingContractAddress = window.env.VOTING_CONTRACT_ADDRESS;
 
-      const registerContractABI = [
+      const votingContractABI = [
         {
-          inputs: [{ internalType: "string", name: "_name", type: "string" }],
-          name: "registerCandidate",
+          inputs: [{ internalType: "string", name: "name", type: "string" }],
+          name: "proposeCandidate",
           outputs: [],
           stateMutability: "nonpayable",
-          type: "function"
-        },
-        {
-          inputs: [{ internalType: "string", name: "_name", type: "string" }],
-          name: "isCandidateRegistered",
-          outputs: [{ internalType: "bool", name: "", type: "bool" }],
-          stateMutability: "view",
           type: "function"
         },
         {
@@ -52,38 +45,38 @@
         {
           anonymous: false,
           inputs: [
-            { indexed: true, internalType: "address", name: "candidate", type: "address" },
+            { indexed: true, internalType: "address", name: "proposer", type: "address" },
             { indexed: false, internalType: "string", name: "name", type: "string" }
           ],
-          name: "CandidateRegistered",
+          name: "CandidateProposed",
           type: "event"
         }
       ];
 
-      let registerContract;
+      let votingContract;
       let signer;
 
       async function setup() {
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
 
-        registerContract = new ethers.Contract(
-          registerContractAddress,
-          registerContractABI,
+        votingContract = new ethers.Contract(
+          votingContractAddress,
+          votingContractABI,
           signer
         );
 
         await loadCandidates();
 
-        registerContract.on("CandidateRegistered", (candidate, name) => {
-          console.log("Event: CandidateRegistered", name);
-          loadCandidates(); // Refresh list
+        votingContract.on("CandidateProposed", (proposer, name) => {
+          console.log("Event: CandidateProposed", name);
+          loadCandidates(); 
         });
       }
 
       setup();
 
-      async function registerCandidate() {
+      async function proposeCandidate() {
         const name = document.getElementById("candidateName").value.trim();
         const status = document.getElementById("status");
 
@@ -94,23 +87,16 @@
         }
 
         try {
-          const isRegistered = await registerContract.isCandidateRegistered(name);
-          if (isRegistered) {
-            status.innerHTML =
-              '<i class="fas fa-exclamation-circle" style="color: orange;"></i> Candidate already registered.';
-            return;
-          }
-
-          const tx = await registerContract.registerCandidate(name);
+          const tx = await votingContract.proposeCandidate(name);
           status.innerHTML =
-            '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Registering candidate...';
+            '<i class="fas fa-spinner fa-spin" style="color: #007bff;"></i> Proposing candidate...';
           await tx.wait();
 
           status.innerHTML =
-            '<i class="fas fa-check-circle" style="color: green;"></i> Candidate registered successfully!';
+            '<i class="fas fa-check-circle" style="color: green;"></i> Candidate proposed successfully!';
           document.getElementById("candidateName").value = "";
         } catch (err) {
-          console.error("Candidate registration failed:", err);
+          console.error("Candidate proposal failed:", err);
           status.innerHTML =
             '<i class="fas fa-exclamation-triangle" style="color: red;"></i> Error: ' +
             (err.reason || err.message || "Check console.");
@@ -120,9 +106,9 @@
       async function loadCandidates() {
         const list = document.getElementById("candidateList");
         try {
-          const candidates = await registerContract.getAllCandidates();
+          const candidates = await votingContract.getAllCandidates();
           if (candidates.length === 0) {
-            list.innerHTML = "<li>No candidates registered yet.</li>";
+            list.innerHTML = "<li>No candidates approved yet.</li>";
           } else {
             list.innerHTML = "";
             candidates.forEach((name) => {

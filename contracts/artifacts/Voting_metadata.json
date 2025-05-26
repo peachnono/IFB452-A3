@@ -25,9 +25,22 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					}
+				],
+				"name": "CandidateApproved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
 						"indexed": true,
 						"internalType": "address",
-						"name": "candidate",
+						"name": "proposer",
 						"type": "address"
 					},
 					{
@@ -37,7 +50,7 @@
 						"type": "string"
 					}
 				],
-				"name": "CandidateRegistered",
+				"name": "CandidateProposed",
 				"type": "event"
 			},
 			{
@@ -70,6 +83,19 @@
 				],
 				"name": "VoteCasted",
 				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					}
+				],
+				"name": "approveCandidate",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			},
 			{
 				"inputs": [],
@@ -111,10 +137,32 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "publishResults",
-				"outputs": [],
-				"stateMutability": "nonpayable",
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"name": "pendingCandidates",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "submitter",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "exists",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -125,7 +173,14 @@
 						"type": "string"
 					}
 				],
-				"name": "registerCandidate",
+				"name": "proposeCandidate",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "publishResults",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -231,11 +286,11 @@
 	},
 	"sources": {
 		"contracts/Voting.sol": {
-			"keccak256": "0xa167e9c7d9a5f12c5950edb922cea33f28b7fe9d642a993c41d1f5e14e857306",
+			"keccak256": "0x99456a47f3d06b074cec137972ff120d4f80556cb33034f48fe86fb406909c72",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://37af99c5f13976951b9ad8c1e001f7d9841fd07903cb9e891b3f659f38767a8a",
-				"dweb:/ipfs/QmdRhNCCghFtVvEWijMH5AEYbCVPQNuvJv19V49hBCgh1U"
+				"bzz-raw://2ac7f300302a1ffb4fff7ce6265abf05dbeb06816c570f1ff6bc2d273c583262",
+				"dweb:/ipfs/QmbjSugPhpR47WNgyk5V9x1QTRdYXnihcXoVNocLc6RCpz"
 			]
 		}
 	},
